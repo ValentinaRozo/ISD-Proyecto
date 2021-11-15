@@ -5,6 +5,7 @@ public class Oferta {
     private String codEmpleador;
     private int sector;
     private int servidor;
+	private String capacidades;
 
     public String getCodOferta() {
 		return codOferta;
@@ -36,6 +37,14 @@ public class Oferta {
 
 	public void setServidor (int servidor) {
 		this.servidor = servidor;
+	}
+
+	public String getCapacidades() {
+		return capacidades;
+	}
+
+	public void setCapacidades (String capacidades) {
+		this.capacidades = capacidades;
 	}
 
     

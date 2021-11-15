@@ -33,6 +33,7 @@ public class Servidor1 {
                     String codEmpleador = String.valueOf(sscanf.nextToken());
                     String codOferta = String.valueOf(sscanf.nextToken());
                     int sector = Integer.valueOf(sscanf.nextToken());
+                    String capacidades = String.valueOf(sscanf.nextToken());
 
                     System.out.println(
                             String.format(
@@ -43,8 +44,9 @@ public class Servidor1 {
                             )
                     );
                     //dht.insertar("1", "1", sector, 1);
-                    Dht.dht.put(codEmpleador+codOferta, insertar(codOferta, codEmpleador, sector, 1));
-                    //System.out.println(Dht.gety());
+                    //Dht.dht.put(codEmpleador+codOferta, insertar(codOferta, codEmpleador, sector, 1));
+                    insertar(codOferta, codEmpleador, sector, 1, capacidades);
+                    //System.out.println(Dht.dht);
                     String response = "1";
                     socket.send(response.getBytes(ZMQ.CHARSET));
                 }else{
@@ -59,13 +61,13 @@ public class Servidor1 {
         
     }
 
-    public static Oferta insertar(String codOferta, String codEmpleador, int sector, int servidor) {
+    public static void insertar(String codOferta, String codEmpleador, int sector, int servidor, String capacidades) {
         Oferta oferta = new Oferta();
         oferta.setCodEmpleador(codEmpleador);
         oferta.setCodOferta(codOferta);
         oferta.setSector(sector);
         oferta.setServidor(servidor);
-        
+        oferta.setCapacidades(capacidades);
 
         String archCSV = "bd.csv";
         
@@ -80,6 +82,8 @@ public class Servidor1 {
             csvWriter.append(oferta.getCodOferta());
             csvWriter.append(",");
             csvWriter.append(String.valueOf(sector));
+            csvWriter.append(",");
+            csvWriter.append(oferta.getCapacidades());
             csvWriter.append("\n");
 
             csvWriter.flush();
@@ -88,8 +92,6 @@ public class Servidor1 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return oferta;
     }
 
     

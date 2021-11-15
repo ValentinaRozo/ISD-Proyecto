@@ -1,7 +1,10 @@
 package com.calderon_garcia_rozo.filtro;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.StringTokenizer;
+
+import com.calderon_garcia_rozo.modelo.Dht;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
@@ -34,6 +37,7 @@ public class Filtro
                 String codEmpleador = String.valueOf(sscanf.nextToken());
                 String codOferta = String.valueOf(sscanf.nextToken());
                 int sector = Integer.valueOf(sscanf.nextToken());
+                String capacidades = String.valueOf(sscanf.nextToken());
 
 
                 System.out.println(
@@ -47,20 +51,21 @@ public class Filtro
 
                 //Complete the request
                 String request = String.format(
-                    "%d %s %s %s %d", 0, oferta, codEmpleador, codOferta, sector
+                    "%d %s %s %s %d %s", 0, oferta, codEmpleador, codOferta, sector, capacidades
                 );
 
                 int max = 3;
                 int min = 1;
                 int a = 0;
                 String reply = "";
+                ArrayList <Integer> arr = new ArrayList<Integer>();
 
                 
                 while(a == 0){
                     Random rn = new Random();
                     int wichServer = rn.nextInt(max - min + min) + 1;
 
-                    //System.out.println("Servidor: " + wichServer);
+                    System.out.println("Tamaño: " + Dht.gety());
 
                     if(wichServer == 1){
                         //Server 1
@@ -74,6 +79,9 @@ public class Filtro
                         reply = socket1.recvStr(0); 
                         if(reply != null){
                             a = 1;
+                            arr.add(sector);
+                            arr.add(1);
+                            Dht.dht.put(codEmpleador+codOferta, arr);
                             socket1.send(request.getBytes(ZMQ.CHARSET), 0);
                         }else{
                             min = 2;
@@ -92,7 +100,14 @@ public class Filtro
                         reply = socket2.recvStr(); 
                         if(reply != null){
                             a = 1;
+                            arr.add(sector);
+                            arr.add(2);
+                            Dht.dht.put(codEmpleador+codOferta, arr);
                             socket2.send(request.getBytes(ZMQ.CHARSET), 0);
+                        }
+                        else{
+                            min = 1;
+                            max = 3;
                         }
                     }else if(wichServer == 3){
                         //Server 3
@@ -106,6 +121,9 @@ public class Filtro
                         reply = socket3.recvStr(); 
                         if(reply != null){
                             a = 1;
+                            arr.add(sector);
+                            arr.add(3);
+                            Dht.dht.put(codEmpleador+codOferta, arr);
                             socket3.send(request.getBytes(ZMQ.CHARSET), 0); 
                         }else{
                             max = 2;

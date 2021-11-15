@@ -3,7 +3,6 @@ package com.calderon_garcia_rozo.servidores;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.StringTokenizer;
-import com.calderon_garcia_rozo.modelo.Dht;
 import com.calderon_garcia_rozo.modelo.Oferta;
 
 import org.zeromq.SocketType;
@@ -34,6 +33,7 @@ public class Servidor2 {
                     String codEmpleador = String.valueOf(sscanf.nextToken());
                     String codOferta = String.valueOf(sscanf.nextToken());
                     int sector = Integer.valueOf(sscanf.nextToken());
+                    String capacidades = String.valueOf(sscanf.nextToken());
 
                     System.out.println(
                             String.format(
@@ -44,9 +44,9 @@ public class Servidor2 {
                             )
                     );
                     
-                    Dht.dht.put(codEmpleador+codOferta, insertar(codOferta, codEmpleador, sector, 2));
-                    //System.out.println(Dht.gety());
-
+                    //Dht.dht.put(codEmpleador+codOferta, insertar(codOferta, codEmpleador, sector, 2));
+                    //System.out.println(Dht.dht);
+                    insertar(codOferta, codEmpleador, sector, 2, capacidades);
                     String response = "1";
                     socket.send(response.getBytes(ZMQ.CHARSET));
                 }else{
@@ -57,12 +57,13 @@ public class Servidor2 {
         }
     }
 
-    public static Oferta insertar(String codOferta, String codEmpleador, int sector, int servidor) {
+    public static void insertar(String codOferta, String codEmpleador, int sector, int servidor, String capacidades) {
         Oferta oferta = new Oferta();
         oferta.setCodEmpleador(codEmpleador);
         oferta.setCodOferta(codOferta);
         oferta.setSector(sector);
         oferta.setServidor(servidor);
+        oferta.setCapacidades(capacidades);
         
 
         String archCSV = "bd.csv";
@@ -78,6 +79,8 @@ public class Servidor2 {
             csvWriter.append(oferta.getCodOferta());
             csvWriter.append(",");
             csvWriter.append(String.valueOf(sector));
+            csvWriter.append(",");
+            csvWriter.append(oferta.getCapacidades());
             csvWriter.append("\n");
 
             csvWriter.flush();
@@ -86,8 +89,6 @@ public class Servidor2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return oferta;
     }
 
     
