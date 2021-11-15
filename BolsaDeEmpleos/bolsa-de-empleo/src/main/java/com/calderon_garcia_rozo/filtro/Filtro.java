@@ -1,5 +1,6 @@
 package com.calderon_garcia_rozo.filtro;
 
+import java.util.Random;
 import java.util.StringTokenizer;
 
 import org.zeromq.SocketType;
@@ -21,12 +22,11 @@ public class Filtro
             //Suscribir para recibir todas las ofertas 
             String filtro = (args.length > 0) ? args[0] : "Oferta";
             subscriber.subscribe(filtro.getBytes(ZMQ.CHARSET));
-            int contSer1 = 0;
-            int contSer2 = 0;
-            int contSer3 = 0;
 
             //Recibe multiples ofertas
-            while (true) {
+            while (true) { 
+                
+
                 String string = subscriber.recvStr(0).trim();
 
                 StringTokenizer sscanf = new StringTokenizer(string, " ");
@@ -44,40 +44,76 @@ public class Filtro
                                 sector
                         )
                 );
-                if((contSer1 <= contSer2) && (contSer1 <= contSer3)){
-                    //va al servidor 1
-                    contSer1++;
-                    ZMQ.Socket socket = context.createSocket(SocketType.REQ);
-                    socket.connect("tcp://localhost:5555");
 
-                    String request = String.format(
-                        "%s %s %s %d", oferta, codEmpleador, codOferta, sector
-                    );
+                //Complete the request
+                String request = String.format(
+                    "%d %s %s %s %d", 0, oferta, codEmpleador, codOferta, sector
+                );
 
-                    socket.send(request.getBytes(ZMQ.CHARSET), 0);
-                }else if((contSer2 <= contSer1) && (contSer2 <= contSer3)){
-                    //va al servidor 2
-                    contSer2++;
-                    ZMQ.Socket socket = context.createSocket(SocketType.REQ);
-                    socket.connect("tcp://localhost:5554");
+                int max = 3;
+                int min = 1;
+                int a = 0;
+                String reply = "";
 
-                    String request = String.format(
-                        "%s %s %s %d", oferta, codEmpleador, codOferta, sector
-                    );
+                
+                while(a == 0){
+                    Random rn = new Random();
+                    int wichServer = rn.nextInt(max - min + min) + 1;
 
-                    socket.send(request.getBytes(ZMQ.CHARSET), 0);
-                }else if((contSer3 <= contSer1) && (contSer3 <= contSer2)){
-                    //Va al servidor 3
-                    contSer3++;
-                    ZMQ.Socket socket = context.createSocket(SocketType.REQ);
-                    socket.connect("tcp://localhost:5553");
+                    System.out.println("Servidor: " + wichServer);
 
-                    String request = String.format(
-                        "%s %s %s %d", oferta, codEmpleador, codOferta, sector
-                    );
+                    if(wichServer == 1){
+                        //Server 1
+                        ZMQ.Socket socket1 = context.createSocket(SocketType.REQ);
+                        socket1.connect("tcp://localhost:5555");
+                        String reque = String.format(
+                            "%d", 1
+                        );
+                        socket1.send(reque.getBytes(ZMQ.CHARSET), 0);
+                        socket1.setReceiveTimeOut(1000);
+                        reply = socket1.recvStr(0); 
+                        if(reply != null){
+                            a = 1;
+                            socket1.send(request.getBytes(ZMQ.CHARSET), 0);
+                        }else{
+                            min = 2;
+                            max = 3;
+                        }
 
-                    socket.send(request.getBytes(ZMQ.CHARSET), 0);
-                } 
+                    }else if(wichServer == 2){
+                        //Server 2
+                        ZMQ.Socket socket2 = context.createSocket(SocketType.REQ);
+                        socket2.connect("tcp://localhost:5554");
+                        String reque = String.format(
+                            "%d", 1
+                        );
+                        socket2.send(reque.getBytes(ZMQ.CHARSET), 0);
+                        socket2.setReceiveTimeOut(1000);
+                        reply = socket2.recvStr(); 
+                        if(reply != null){
+                            a = 1;
+                            socket2.send(request.getBytes(ZMQ.CHARSET), 0);
+                        }
+                    }else if(wichServer == 3){
+                        //Server 3
+                        ZMQ.Socket socket3 = context.createSocket(SocketType.REQ);
+                        socket3.connect("tcp://localhost:5553");
+                        String reque = String.format(
+                            "%d", 1
+                        );
+                        socket3.send(reque.getBytes(ZMQ.CHARSET), 0);
+                        socket3.setReceiveTimeOut(1000);
+                        reply = socket3.recvStr(); 
+                        if(reply != null){
+                            a = 1;
+                            socket3.send(request.getBytes(ZMQ.CHARSET), 0); 
+                        }else{
+                            max = 2;
+                            min = 1;
+                        }
+                    }
+                }
+                
             } 
         }
     }
