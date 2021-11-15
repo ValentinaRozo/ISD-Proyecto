@@ -60,7 +60,7 @@ public class Filtro
                     Random rn = new Random();
                     int wichServer = rn.nextInt(max - min + min) + 1;
 
-                    System.out.println("Servidor: " + wichServer);
+                    //System.out.println("Servidor: " + wichServer);
 
                     if(wichServer == 1){
                         //Server 1
