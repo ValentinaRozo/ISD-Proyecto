@@ -20,6 +20,9 @@ public class Filtro
             System.out.println("Recibiendo ofertas...");
             ZMQ.Socket subscriber = context.createSocket(SocketType.SUB);
             subscriber.connect("tcp://localhost:5556");
+
+            ZMQ.Socket publisher = context.createSocket(SocketType.PUB);
+            publisher.bind("tcp://*:5558");
             
 
             //Suscribir para recibir todas las ofertas 
@@ -28,10 +31,7 @@ public class Filtro
 
             //Recibe multiples ofertas
             while (true) { 
-                
-
                 String string = subscriber.recvStr(0).trim();
-
                 StringTokenizer sscanf = new StringTokenizer(string, " ");
                 String oferta = String.valueOf(sscanf.nextToken());
                 String codEmpleador = String.valueOf(sscanf.nextToken());
@@ -49,10 +49,13 @@ public class Filtro
                         )
                 );
 
+                
+
                 //Complete the request
                 String request = String.format(
                     "%d %s %s %s %d %s", 0, oferta, codEmpleador, codOferta, sector, capacidades
                 );
+
 
                 int max = 3;
                 int min = 1;
@@ -65,12 +68,13 @@ public class Filtro
                     Random rn = new Random();
                     int wichServer = rn.nextInt(max - min + min) + 1;
 
-                    System.out.println("Tamaño: " + Dht.gety());
+                    //System.out.println("Tamaño: " + Dht.gety());
 
                     if(wichServer == 1){
                         //Server 1
                         ZMQ.Socket socket1 = context.createSocket(SocketType.REQ);
                         socket1.connect("tcp://localhost:5555");
+                        
                         String reque = String.format(
                             "%d", 1
                         );
@@ -83,6 +87,11 @@ public class Filtro
                             arr.add(1);
                             Dht.dht.put(codEmpleador+codOferta, arr);
                             socket1.send(request.getBytes(ZMQ.CHARSET), 0);
+                            String se = String.valueOf(sector);
+                            String update = String.format(
+                                "%s %s %s %s %s %d", se, codEmpleador+codOferta, codOferta, codEmpleador, capacidades, 1
+                            );
+                            publisher.send(update, 0);
                         }else{
                             min = 2;
                             max = 3;
@@ -104,6 +113,11 @@ public class Filtro
                             arr.add(2);
                             Dht.dht.put(codEmpleador+codOferta, arr);
                             socket2.send(request.getBytes(ZMQ.CHARSET), 0);
+                            String se = String.valueOf(sector);
+                            String update = String.format(
+                                "%s %s %s %s %s %d", se, codEmpleador+codOferta, codOferta, codEmpleador, capacidades, 1
+                            );
+                            publisher.send(update, 0);
                         }
                         else{
                             min = 1;
@@ -124,12 +138,41 @@ public class Filtro
                             arr.add(sector);
                             arr.add(3);
                             Dht.dht.put(codEmpleador+codOferta, arr);
-                            socket3.send(request.getBytes(ZMQ.CHARSET), 0); 
+                            socket3.send(request.getBytes(ZMQ.CHARSET), 0);
+                            String se = String.valueOf(sector);
+                            String update = String.format(
+                                "%s %s %s %s %s %d", se, codEmpleador+codOferta, codOferta, codEmpleador, capacidades, 1
+                            );
+                            publisher.send(update, 0); 
                         }else{
                             max = 2;
                             min = 1;
                         }
                     }
+                }
+
+                if (Dht.dht.size() == 10000 ){
+                    System.out.println("Entre");
+                    String reque = String.format(
+                        "%d", 2
+                    );
+                    ZMQ.Socket socket1 = context.createSocket(SocketType.REQ);
+                    socket1.connect("tcp://localhost:5555");
+                    socket1.send(reque.getBytes(ZMQ.CHARSET), 0);
+                    socket1.setReceiveTimeOut(1000);
+                    reply = socket1.recvStr(); 
+                    if(reply != null){
+                        
+                        System.out.println(reply);
+                        /*
+                        String update = String.format(
+                            "%s %s %s %d %s", topico, codEmpleador, codOferta, sec, cap
+                        );
+                        publisher.send(update, 0);
+                        */
+                    }
+
+
                 }
                 
             } 

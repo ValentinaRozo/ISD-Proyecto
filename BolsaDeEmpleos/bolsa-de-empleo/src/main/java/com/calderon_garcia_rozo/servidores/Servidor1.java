@@ -1,8 +1,12 @@
 package com.calderon_garcia_rozo.servidores;
 import com.calderon_garcia_rozo.modelo.*;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import java.util.StringTokenizer;
 
 import org.zeromq.SocketType;
@@ -28,7 +32,7 @@ public class Servidor1 {
                 StringTokenizer sscanf = new StringTokenizer(string, " ");
                 int val = Integer.valueOf(sscanf.nextToken());
 
-                if(val != 1){
+                if(val == 0){
                     String oferta = String.valueOf(sscanf.nextToken());
                     String codEmpleador = String.valueOf(sscanf.nextToken());
                     String codOferta = String.valueOf(sscanf.nextToken());
@@ -49,6 +53,13 @@ public class Servidor1 {
                     //System.out.println(Dht.dht);
                     String response = "1";
                     socket.send(response.getBytes(ZMQ.CHARSET));
+                }else if(val == 2){
+                    ArrayList <String> ar = leer();
+
+                    for (String a: ar){
+                        System.out.println(a);
+                        socket.send(a.getBytes(ZMQ.CHARSET));
+                    }
                 }else{
                     String response = "1";
                     socket.send(response.getBytes(ZMQ.CHARSET));
@@ -92,6 +103,53 @@ public class Servidor1 {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static ArrayList <String> leer(){
+        String archCSV = "bd.csv";
+        ArrayList <String[]> arr = new ArrayList<>();
+        ArrayList <String> ar = new ArrayList<>();
+        String line = "";
+        String splitBy = ",";
+        
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(new FileReader(archCSV));
+                while ((line = br.readLine()) != null)
+                {
+                    String[] e = line.split(splitBy);
+                    arr.add(e);
+                }
+            } catch (IOException e) {
+               
+                e.printStackTrace();
+            }
+
+        for (String[] i: arr){
+            String clave, codOferta, codEmpleador, capacidades;
+            int sector, servidor;
+
+            clave = i[0];
+            servidor = Integer.valueOf(i[1]);
+            codEmpleador = i[2];
+            codOferta = i[3];
+            sector = Integer.valueOf(i[4]);
+            capacidades = i[5];
+
+            String va = String.format("%d %s %d %s %s %s", 
+                sector, 
+                clave, 
+                servidor, 
+                codEmpleador, 
+                codOferta, 
+                capacidades
+            );
+            ar.add(va);
+        }
+
+        return ar;
+
+
     }
 
     
